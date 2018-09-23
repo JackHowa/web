@@ -5,7 +5,7 @@ import styled from "styled-components"
 import theme from "theme"
 import { getArticle } from "ducks/articles"
 import Loader from "components/Loader"
-import { Grid, Column } from "components/Grid"
+import { Grid, Column } from "../components/Grid"
 import { BlockLink } from "components/TouchTarget"
 
 const StyledArticle = styled(Grid)`

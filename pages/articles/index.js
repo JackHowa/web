@@ -1,11 +1,12 @@
 import React from "react"
 
 import styled from "styled-components"
-import theme from "theme"
-import { Grid, Column } from "components/Grid"
-import Loader from "components/Loader"
-import { Link } from "next/link"
+import theme from "../../components/theme"
+import {Grid, Column} from "../../components/Grid"
+import Loader from "../../components/Loader"
+import {Link} from "next/link"
 
+import {createClient} from "contentful"
 
 const ArticleListWrapper = styled(Grid)`
   margin-top: 10rem;
@@ -20,7 +21,7 @@ const ArticleListWrapper = styled(Grid)`
   }
 `
 
-const StyledArticle = styled.article`
+const StyledArticle = styled.article `
   position: relative;
   .article__image {
     padding-bottom: 62.5%;
@@ -51,64 +52,61 @@ const StyledArticle = styled.article`
 
 const Article = ({
   article: {
-    fields: { photo, title, contributor },
+    fields: {
+      photo,
+      title,
+      contributor
+    },
     sys
   },
   className
 }) => {
-  return (
-    <StyledArticle
-      className={className}
-      photo={photo ? photo.fields.file.url : "no-photo"}
-    >
-      <Link to={`/articles/${sys.id}`}>
-        <div className="article__image" />
+  return (<StyledArticle className={className} photo={photo
+      ? photo.fields.file.url
+      : "no-photo"}>
+    <Link to={`/articles/${sys.id}`}>
+      <div className="article__image"/>
 
       <h4 className="article__title">{title}</h4>
-      {contributor && (
-        <p className="article__contributor">{contributor.fields.name}</p>
-      )}      </Link>
-    </StyledArticle>
-  )
+      {contributor && (<p className="article__contributor">{contributor.fields.name}</p>)}
+    </Link>
+  </StyledArticle>)
 }
 
 class ArticleList extends React.Component {
-  componentDidMount = () => this.props.getArticles()
+  static async getInitialProps() {
+    const client = createClient(
+      {
+        space: "021ulla0m5co",
+        accessToken: "709d8f98e56158641d25ba23ceb57029ecc91e0a9a11f35fa6e0f666ffbeb4d0",
+        host: "preview.contenful.com"
+      })
+    const {items} = await client.getEntries({content_type: "article", select: "sys.id,fields.title,fields.contributor,fields.photo"})
 
-  render = () => {
-    const { articles, loaded } = this.props
-    const articlesArray = Object.values(articles)
-    // first article
-    const head = articlesArray[0]
-    // copy because slice mutates articlesArray.
-    const tail = [...articlesArray.slice(1)]
-    if (!loaded) return <Loader />
-    return (
-      <ArticleListWrapper container>
+    componentDidMount = () => this.props.getArticles()
+
+    render = () => {
+      const {articles, loaded} = this.props
+      const articlesArray = Object.values(articles)
+      // first article
+      const head = articlesArray[0]
+      // copy because slice mutates articlesArray.
+      const tail = [...articlesArray.slice(1)]
+      if (!loaded)
+        return <Loader/>
+      return (<ArticleListWrapper container="container">
         <Column smOffset={1} sm={10}>
           <h4>Featured Articles</h4>
         </Column>
         <Column md={5} smOffset={1}>
-          <Article article={head} />
+          <Article article={head}/>
         </Column>
         <Column md={5} className="small-article-grid">
-          {tail.map(article => (
-            <Article
-              key={article.sys.id}
-              article={article}
-              className="small-article"
-            />
-          ))}
+          {tail.map(article => (<Article key={article.sys.id} article={article} className="small-article"/>))}
         </Column>
-      </ArticleListWrapper>
-    )
+      </ArticleListWrapper>)
+    }
   }
 }
 
-export default connect(
-  ({ articles: { items, loaded } }) => ({
-    articles: items,
-    loaded
-  }),
-  { getArticles }
-)(ArticleList)
+export default ArticleList;
